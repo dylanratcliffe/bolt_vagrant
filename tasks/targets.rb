@@ -48,7 +48,7 @@ module Bolt
       # Convert to winrm config
       winrm_conf.each do |_name, config|
         targets << {
-          'uri'    => "ssh://#{config['HostName']}:#{config['Port']}",
+          'uri'    => "winrm://#{config['HostName']}:#{config['Port']}",
           'name'   => config['Host'],
           'config' => {
             'winrm' => {
