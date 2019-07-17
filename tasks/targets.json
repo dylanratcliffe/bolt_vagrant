@@ -1,7 +1,7 @@
 {
   "puppet_task_version": 1,
   "supports_noop": false,
-  "description": "A short description of this task",
+  "description": "Returns inventory from Vagrant for use in Bolt",
   "parameters": {
     "vagrant_dir": {
       "description": "Location of the directory containing the Vagrantfile. Defaults to the current directory.",
