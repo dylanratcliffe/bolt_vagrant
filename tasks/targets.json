@@ -3,5 +3,13 @@
   "supports_noop": false,
   "description": "A short description of this task",
   "parameters": {
+    "vagrant_dir": {
+      "description": "Location of the directory containing the Vagrantfile. Defaults to the current directory.",
+      "type": "Optional[String]"
+    },
+    "winrm_regex": {
+      "description": "Machines that match this will be connected to using winrm. Otherwise SSH will be used/",
+      "type": "Optional[String]"
+    }
   }
 }

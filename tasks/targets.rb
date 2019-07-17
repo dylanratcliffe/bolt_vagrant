@@ -7,11 +7,12 @@ require 'json'
 # Class for organising the code
 module Bolt
   class Vagrant
-    def initialize(vagrant_dir)
+    def initialize(opts = {})
       @status         = nil
       @ssh_config     = {}
-      @vagrant_dir    = vagrant_dir
+      @vagrant_dir    = opts['vagrant_dir'] || Dir.pwd
       @vagrant_binary = which('vagrant')
+      @winrm_regex    = Regexp.new(opts['winrm_regex'] || 'windows')
     end
 
     def inventory_targets
@@ -20,10 +21,16 @@ module Bolt
       # Get the running nodes using vagrant status
       running_nodes = status.keep_if { |_name, details| details['state'] == 'running' }
 
-      ssh_config = ssh_config(running_nodes.keys)
+      # Split into winrm and ssh transports
+      winrm_nodes = running_nodes.select { |n,_d| @winrm_regex.match?(n) }
+      ssh_nodes   = running_nodes.reject { |n,_d| @winrm_regex.match?(n) }
 
-      # Get ssh details for all nodes
-      ssh_config.each do |_name, config|
+      # Get the config
+      winrm_conf = winrm_config(winrm_nodes.keys)
+      ssh_conf   = ssh_config(ssh_nodes.keys)
+
+      # Convert to SSH style config
+      ssh_conf.each do |_name, config|
         targets << {
           'uri'    => "ssh://#{config['HostName']}:#{config['Port']}",
           'name'   => config['Host'],
@@ -33,6 +40,21 @@ module Bolt
               'run-as'         => 'root',
               'private-key'    => config['IdentityFile'],
               'host-key-check' => false,
+            },
+          },
+        }
+      end
+
+      # Convert to winrm config
+      winrm_conf.each do |_name, config|
+        targets << {
+          'uri'    => "ssh://#{config['HostName']}:#{config['Port']}",
+          'name'   => config['Host'],
+          'config' => {
+            'winrm' => {
+              'user'     => config['User'],
+              'password' => config['Password'],
+              'ssl'      => false,
             },
           },
         }
@@ -55,9 +77,29 @@ module Bolt
       debug("Running 'vagrant ssh-config '#{hosts_regex}'' to get the ssh details")
       hosts = parse_machine_readable(exec("#{@vagrant_binary} ssh-config '#{hosts_regex}' --machine-readable"))
 
+      # Delete all non-winrm hosts
+      hosts.keep_if { |_n, d| d.key? 'ssh-config' }
+
       # Parse the SSH config
       hosts.each do |host, details|
         hosts[host] = parse_ssh_config(details['ssh-config'].gsub('\n', "\n"))
+      end
+
+      @ssh_config = hosts
+    end
+
+    def winrm_config(hosts)
+      hosts_regex = "/#{hosts.join('|')}/"
+
+      debug("Running 'vagrant winrm-config '#{hosts_regex}'' to get the ssh details")
+      hosts = parse_machine_readable(exec("#{@vagrant_binary} winrm-config '#{hosts_regex}' --machine-readable"))
+
+      # Delete all non-winrm hosts
+      hosts.keep_if { |_n, d| d.key? 'winrm-config' }
+
+      # Parse the config
+      hosts.each do |host, details|
+        hosts[host] = parse_ssh_config(details['winrm-config'].gsub('\n', "\n"))
       end
 
       @ssh_config = hosts
@@ -129,10 +171,13 @@ module Bolt
   end
 end
 
+# Parse the input
+params = JSON.parse(STDIN.read)
+
 # Get the details
-vagrant = Bolt::Vagrant.new(Dir.pwd)
+vagrant = Bolt::Vagrant.new(params)
 targets = vagrant.inventory_targets
 
 puts(
-  targets: targets,
+  'targets' => targets,
 ).to_json
