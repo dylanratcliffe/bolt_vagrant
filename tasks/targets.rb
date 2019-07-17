@@ -178,6 +178,8 @@ params = JSON.parse(STDIN.read)
 vagrant = Bolt::Vagrant.new(params)
 targets = vagrant.inventory_targets
 
-puts(
+result = {
   'targets' => targets,
-).to_json
+}
+
+puts(result.to_json)
