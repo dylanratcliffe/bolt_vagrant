@@ -1,6 +1,6 @@
 {
   "name": "dylanratcliffe-bolt_vagrant",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "Dylan Ratcliffe",
   "summary": "Dynamic inventory for bolt from a vagrant environment",
   "license": "Apache-2.0",
