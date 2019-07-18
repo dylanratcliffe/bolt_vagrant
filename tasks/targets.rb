@@ -5,7 +5,8 @@ require 'csv'
 require 'json'
 
 # Class for organising the code
-module Bolt
+module Bolt # rubocop:disable Style/ClassAndModuleChildren
+  # Interacts with the vagrant CLI
   class Vagrant
     def initialize(opts = {})
       @status         = nil
@@ -22,8 +23,8 @@ module Bolt
       running_nodes = status.keep_if { |_name, details| details['state'] == 'running' }
 
       # Split into winrm and ssh transports
-      winrm_nodes = running_nodes.select { |n,_d| @winrm_regex.match?(n) }
-      ssh_nodes   = running_nodes.reject { |n,_d| @winrm_regex.match?(n) }
+      winrm_nodes = running_nodes.select { |n, _d| @winrm_regex.match?(n) }
+      ssh_nodes   = running_nodes.reject { |n, _d| @winrm_regex.match?(n) }
 
       # Get the config
       winrm_conf = winrm_config(winrm_nodes.keys)
@@ -119,7 +120,9 @@ module Bolt
     private
 
     def deep_merge(first, second)
-      merger = proc { |_key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
+      merger = proc do |_key, v1, v2|
+        (Hash === v1 && Hash === v2) ? v1.merge(v2, &merger) : v2 # rubocop:disable Style/CaseEquality
+      end
       first.merge(second, &merger)
     end
 
@@ -135,7 +138,7 @@ module Bolt
         columns.shift
 
         # Convert to a hash
-        parsed = deep_merge(parsed, columns.reverse.inject { |a, n| { n => a } })
+        parsed = deep_merge(parsed, columns.reverse.reduce { |a, n| { n => a } })
       end
 
       # Detele things that aren't related to a node
@@ -145,7 +148,7 @@ module Bolt
     end
 
     def parse_ssh_config(output)
-      ssh_config_regex = /^\s*(?<setting>[A-Z]\w+)\s+(?<value>.*)$/
+      ssh_config_regex = %r{^\s*(?<setting>[A-Z]\w+)\s+(?<value>.*)$}
 
       Hash[output.scan(ssh_config_regex)]
     end
@@ -158,7 +161,7 @@ module Bolt
     #
     #   which('ruby') #=> /usr/bin/ruby
     def which(cmd)
-      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : [''] # rubocop:disable Style/TernaryParentheses
       ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
         exts.each do |ext|
           exe = File.join(path, "#{cmd}#{ext}")
