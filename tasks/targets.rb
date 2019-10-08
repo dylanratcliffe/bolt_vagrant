@@ -14,6 +14,7 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
       @vagrant_dir    = opts['vagrant_dir'] || Dir.pwd
       @vagrant_binary = which('vagrant')
       @winrm_regex    = Regexp.new(opts['winrm_regex'] || 'windows')
+      @node_match     = opts['match'].nil? ? nil : Regexp.new(opts['match'])
     end
 
     def inventory_targets
@@ -21,6 +22,10 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
 
       # Get the running nodes using vagrant status
       running_nodes = status.keep_if { |_name, details| details['state'] == 'running' }
+
+      unless @node_match.nil?
+        running_nodes = running_nodes.select { |n, _d| @node_match.match?(n) }
+      end
 
       # Split into winrm and ssh transports
       winrm_nodes = running_nodes.select { |n, _d| @winrm_regex.match?(n) }
