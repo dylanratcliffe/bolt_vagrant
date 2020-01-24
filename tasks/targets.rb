@@ -157,6 +157,26 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
       STDERR.puts("DEBUG -> #{message}")
     end
 
+    def vagrant_version_ok(exe)
+      require 'facter'
+
+      if Facter.value(:operatingsystem) == 'windows'
+        out = %("#{exe.gsub('"', '""')}" --version)
+      else
+        require 'shellwords'
+
+        out = `#{exe.shellescape} --version`
+      end
+
+      %r{^Vagrant\s*([0-9][0-9.]*)}.match(out) do |m|
+        if m[1].split('.')[0].to_i >= 2
+          return true
+        end
+      end
+
+      false
+    end
+
     # Cross-platform way of finding an executable in the $PATH.
     #
     #   which('ruby') #=> /usr/bin/ruby
@@ -166,7 +186,7 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
         exts.each do |ext|
           exe = File.join(path, "#{cmd}#{ext}")
           # Check that it's an executable but also that it's not the ruby version of vagrant
-          return exe if File.executable?(exe) && !File.directory?(exe) && (File.read(exe)[0..1] != '#!')
+          return exe if File.executable?(exe) && !File.directory?(exe) && vagrant_version_ok(exe)
         end
       end
       nil
