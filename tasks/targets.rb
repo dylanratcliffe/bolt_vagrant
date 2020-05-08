@@ -78,10 +78,10 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
     end
 
     def ssh_config(hosts)
-      hosts_regex = "/#{hosts.join('|')}/"
+      hosts_list = "#{hosts.join(' ')}"
 
-      debug("Running 'vagrant ssh-config '#{hosts_regex}'' to get the ssh details")
-      hosts = parse_machine_readable(exec("#{@vagrant_binary} ssh-config '#{hosts_regex}' --machine-readable"))
+      debug("Running 'vagrant ssh-config #{hosts_list}' to get the ssh details")
+      hosts = parse_machine_readable(exec("#{@vagrant_binary} ssh-config #{hosts_list} --machine-readable"))
 
       # Delete all non-winrm hosts
       hosts.keep_if { |_n, d| d.key? 'ssh-config' }
@@ -95,10 +95,10 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
     end
 
     def winrm_config(hosts)
-      hosts_regex = "/#{hosts.join('|')}/"
+      hosts_list = "#{hosts.join(' ')}"
 
-      debug("Running 'vagrant winrm-config '#{hosts_regex}'' to get the ssh details")
-      hosts = parse_machine_readable(exec("#{@vagrant_binary} winrm-config '#{hosts_regex}' --machine-readable"))
+      debug("Running 'vagrant winrm-config #{hosts_list}' to get the ssh details")
+      hosts = parse_machine_readable(exec("#{@vagrant_binary} winrm-config #{hosts_list} --machine-readable"))
 
       # Delete all non-winrm hosts
       hosts.keep_if { |_n, d| d.key? 'winrm-config' }
