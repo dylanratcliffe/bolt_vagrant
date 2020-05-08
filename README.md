@@ -33,3 +33,5 @@ targets:
 **`vagrant_dir`:** The location of the Vagrant directory, defaults to `cwd`
 
 **`winrm_regex`:** A regular expression used to determine which machines should be connected to using winrm. Unfortunately Vagrant doesn't give that information out at the command line and there is no way of working it out. This regex is passed to `Regexp.new()` as a string. Running the `targets.rb` file manually will provide debugging info.
+
+**`match`:** A regular expression used to determine which machines should be returned in the inventory. This regex is passed to `Regexp.new()` as a string.

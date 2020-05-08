@@ -8,8 +8,12 @@
       "type": "Optional[String]"
     },
     "winrm_regex": {
-      "description": "Machines that match this will be connected to using winrm. Otherwise SSH will be used/",
-      "type": "Optional[String]"
+      "description": "Machines that match this will be connected to using winrm. Otherwise SSH will be used.",
+      "type": "Optional[Pattern]"
+    },
+    "match": {
+      "description": "Machines that match this will be included in the inventory.",
+      "type": "Optional[Pattern]"
     }
   }
 }
