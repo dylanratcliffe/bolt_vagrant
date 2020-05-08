@@ -182,7 +182,7 @@ vagrant = Bolt::Vagrant.new(params)
 targets = vagrant.inventory_targets
 
 result = {
-  'targets' => targets,
+  'value' => targets,
 }
 
 puts(result.to_json)
