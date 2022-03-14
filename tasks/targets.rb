@@ -46,6 +46,7 @@ module Bolt # rubocop:disable Style/ClassAndModuleChildren
               'run-as'         => 'root',
               'private-key'    => config['IdentityFile'],
               'host-key-check' => false,
+              'load-config'    => false,
             },
           },
         }
